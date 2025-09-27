@@ -1,57 +1,59 @@
-# Life Plan App (Docker 開発環境)
+# Life Plan App (Docker 環境)
 
-ライフプランアプリのローカル開発用 Docker 環境を構築するテンプレートです。Next.js フロントエンド、FastAPI バックエンド、PostgreSQL を docker-compose で起動します。
+Next.js + FastAPI + PostgreSQL で構成されたライフプランアプリの Docker 設定です。本番向け `docker-compose.yml` と、開発向け `docker-compose.dev.yml` を用意しています。
 
 ## 前提条件
 
-- Docker / Docker Compose がインストール済み
+- Docker / Docker Compose v2 以降がインストール済み
 - このリポジトリをクローン済み
 
-## 使い方
+## 本番構成
+
+`docker-compose.yml` は各サービスの本番イメージをビルドし、ソースをコンテナ内へコピーして起動します。
 
 ```bash
-# 依存関係の初回インストール（任意）
+# 本番用イメージのビルドと起動
 docker compose build
-
-# コンテナの起動
 docker compose up -d
 
-# ログ確認
-docker compose logs -f frontend
+# 停止
+docker compose down
 ```
-
-起動後に以下へアクセスできます。
 
 - フロントエンド: http://localhost:3000
 - バックエンド (Swagger UI): http://localhost:8000/docs
 - PostgreSQL: localhost:5432（ユーザー/パスワードともに `postgres`）
 
-## プロジェクト構成
+永続化ボリュームは `db-data` を使用します。
 
+## 開発構成
+
+`docker-compose.dev.yml` は `Dockerfile.dev` を利用し、ホストのソースコードをコンテナへマウントしてホットリロードを有効にします。DB 用ボリュームは `db-data-dev` として本番と分離しています。
+
+```bash
+# 開発向け起動
+docker compose -f docker-compose.dev.yml build
+docker compose -f docker-compose.dev.yml up -d
+
+# ログ確認
+docker compose -f docker-compose.dev.yml logs -f frontend
+
+# 停止
+docker compose -f docker-compose.dev.yml down
+# DB を初期化する場合
+docker compose -f docker-compose.dev.yml down -v
 ```
-life-app/
-├── backend/          # FastAPI アプリケーション
-├── frontend/         # Next.js アプリケーション
-├── docker-compose.yml
-└── README.md
-```
+
+## Dockerfile 一覧
+
+- `frontend/Dockerfile` : Node.js 24 を使用した本番ビルド
+- `frontend/Dockerfile.dev` : Node.js 24 ベースの開発用イメージ（ソースはマウント）
+- `backend/Dockerfile` : Python 3.13 を使用した本番ビルド
+- `backend/Dockerfile.dev` : Python 3.13 ベースの開発用イメージ（ソースはマウント）
 
 ## 環境変数
 
-`backend/.env.example` を参考に `backend/.env` を作成すると、ローカル環境向けの設定を上書きできます。
-
-## よくある操作
-
-```bash
-# コンテナ停止
-docker compose down
-
-# 再ビルド
-docker compose build --no-cache
-
-# DB の永続化ボリュームを削除（データ初期化）
-docker compose down -v
-```
+`backend/.env.example` を参考に `backend/.env` を作成すると、API の設定値を上書きできます。本番環境では適切なシークレット値に変更してください。
 
 ## 次のステップ
 
@@ -59,4 +61,3 @@ docker compose down -v
 - 認証 (JWT) や CRUD API を段階的に実装
 - Redux Toolkit でフロントエンドの状態管理ロジックを構築
 - Chart.js / Recharts で資産推移グラフを描画
-

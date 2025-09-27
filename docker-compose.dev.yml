@@ -4,9 +4,13 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://backend:8000
+    command: npm run dev
     ports:
       - "3000:3000"
     depends_on:
@@ -15,11 +19,14 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app
     environment:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/lifeapp
       JWT_SECRET_KEY: changeme
       JWT_ALGORITHM: HS256
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
     depends_on:
@@ -34,7 +41,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data-dev:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -42,4 +49,4 @@ services:
       retries: 5
 
 volumes:
-  db-data:
+  db-data-dev:

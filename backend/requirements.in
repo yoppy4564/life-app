@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+# Use psycopg-binary (prebuilt binary wheels) and pin a modern minimum to avoid
+# resolver selecting an old psycopg version that references a non-existent
+# psycopg-binary wheel. If you prefer source install, use 'psycopg' instead.
+psycopg-binary>=3.2.2
+python-jose[cryptography]
+passlib[bcrypt]
+pydantic-settings
+alembic
